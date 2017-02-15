@@ -1,20 +1,51 @@
 from pyramid.response import Response
 from pyramid.view import view_config
 
+from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPFound
+from .forms import EntryCreateForm
+
 from sqlalchemy.exc import DBAPIError
 
 # from ..models import MyModel
-from ..models import Entry
+from ..models.mymodel import Entry, DBSession
 
 
-@view_config(route_name='home', renderer='../templates/mytemplate.jinja2')
-def my_view(request):
-    try:
-        query = request.dbsession.query(MyModel)
-        one = query.filter(MyModel.name == 'one').first()
-    except DBAPIError:
-        return Response(db_err_msg, content_type='text/plain', status=500)
-    return {'one': one, 'project': 'learning_journal'}
+# @view_config(route_name='home', renderer='../templates/mytemplate.jinja2')
+# def my_view(request):
+#     try:
+#         query = request.dbsession.query(MyModel)
+#         one = query.filter(MyModel.name == 'one').first()
+#     except DBAPIError:
+#         return Response(db_err_msg, content_type='text/plain', status=500)
+#     return {'one': one, 'project': 'learning_journal'}
+
+@view_config(route_name='home', renderer='templates/list.jinja2')
+def index_page(request):
+    entries = Entry.all()
+    return {'entries': entries}
+
+@view_config(route_name='detail', renderer='templates/detail.jinja2')
+def view(request):
+    this_id = request.matchdict.get('id', -1)
+    entry = Entry.by_id(this_id)
+    if not entry:
+        return HTTPNotFound()
+    return {'entry': entry}
+
+@view_config(route_name='action', match_param='action=create', renderer='templates/edit.jinja2')
+def create(request):
+    entry = Entry()
+    form = EntryCreateForm(request.POST)
+    if request.method == 'POST' and form.validate():
+        form.populate_obj(entry)
+        DBSession.add(entry)
+        return HTTPFound(location=request.route_url('home'))
+    return {'form': form, 'action': request.matchdict.get('action')}
+
+@view_config(route_name='action', match_param='action=edit', renderer='string')
+def update(request):
+    return 'edit page'
 
 
 db_err_msg = """\
