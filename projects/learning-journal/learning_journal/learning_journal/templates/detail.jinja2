@@ -1,6 +1,5 @@
 {% extends "layout.jinja2" %}
 {% block body %}
-
 <article>
   <h1>{{ entry.title }}</h1>
   <hr/>
@@ -8,5 +7,9 @@
   <hr/>
   <p>Created <strong title="{{ entry.created }}">{{entry.created}}</strong></p>
 </article>
-
+<p>
+  <a href="{{ request.route_url('home') }}">Go Back</a> ::
+  <a href="{{ request.route_url('action', action='edit', _query=(('id',entry.id),)) }}">
+    Edit Entry</a>
+</p>
 {% endblock %}
