@@ -1,4 +1,4 @@
-#!/Users/robisoc/code/uw_python_cp220/projects/learning-journal/learning_journal/ljenv/bin/python3
+#!/Users/robisoc/code/uw_python_cp220/projects/learning-journal/learning_journal/ljenv/bin/python
 # EASY-INSTALL-ENTRY-SCRIPT: 'Pygments','console_scripts','pygmentize'
 __requires__ = 'Pygments'
 import re

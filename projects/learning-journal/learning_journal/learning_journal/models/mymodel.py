@@ -20,8 +20,10 @@ from sqlalchemy.orm import(
     sessionmaker
     )
 from zope.sqlalchemy import ZopeTransactionExtension
+from passlib.context import CryptContext
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
+password_context = CryptContext(schemes=['pbkdf2_sha512'])
 
 # this is the class that came with the scaffold, we can remove it
 # class MyModel(Base):
@@ -69,3 +71,8 @@ class User(Base):
     @classmethod
     def by_name(cls, name):
         return DBSession.query(cls).filter(cls.name == name).first()
+
+    def verify_password(self, password):
+        return password_context.verify(password, self.password)
+
+
