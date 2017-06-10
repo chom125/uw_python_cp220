@@ -1,0 +1,138 @@
+ #Lawrence Woods
+#Dajango Blog
+#6/6/2017
+
+from django.db import models
+from django.contrib.auth.models import User
+
+class Post(models.Model):
+title = models.CharField(max_length=128)
+text = models.TextField(blank=True)
+author = models.ForeignKey(User)
+created_date = models.DateTimeField(auto_now_add=True)
+modified_date = models.DateTimeField(auto_now=True)
+published_date = models.DateTimeField(blank=True, null=True)
+
+
+from django.test import TestCase
+from django.contrib.auth.models import User
+
+from django.test import TestCase
+from django.contrib.auth.models import User
+def __str__(self):
+return self.title
+
+from django.contrib import admin
+from myapp.models import Post
+admin.site.register(Post)
+
+class Category(models.Model):
+name = models.CharField(max_length=128)
+description = models.TextField(blank=True)
+posts = models.ManyToManyField(Post, blank=True, related_name='categories')from myapp.models import Post, Category # Add this Category import
+
+...
+admin.site.register(Category)
+class CategoryTestCase(TestCase):
+
+def test_string_representation(self):
+expected = "A category"
+c1 = Category(name=expected)
+actual = str(c1)
+self.assertEqual(expected, actual)
+def __str__(self):
+return self.name
+import datetime
+from django.utils.timezone import utc
+
+
+class FrontEndTestCase(TestCase):
+fixtures = ['myapp/myblog_test_fixture.json',]
+
+def setUp(self):
+self.now = datetime.datetime.utcnow().replace(tzinfo=utc)
+self.timedelta = datetime.timedelta(15)
+author = User.objects.get(pk=1)
+
+for count in range(1, 11):
+post = Post(title="Test Post %d Title" % count,
+text="foo", author=author)
+
+if count < 6:
+pubdate = self.now - self.timedelta * count
+post.published_date = pubdate
+
+post.save()
+
+def test_list_only_published(self):
+resp = self.client.get('/')
+
+for count in range(1, 11):
+title = "Test Post %d Title" % count
+if count < 6:
+self.assertContains(resp, title, count=1)
+else:
+self.assertNotContains(resp, title)
+from django.shortcuts import render
+from django.template import RequestContext, loader
+from django.http import HttpResponse, HttpResponseRedirect, Http404
+
+from myapp.models import Post
+
+def list_view(request):
+return HttpResponse("HERE!", "text/html")
+from django.conf.urls import url
+from myapp.views import list_view
+
+urlpatterns = [
+url(r'^$', list_view, name="blog_index"),
+]
+from django.conf.urls import include, url
+from django.contrib import admin
+
+urlpatterns = [
+# Examples:
+# url(r'^$', 'myblog.views.home', name='home'),
+# url(r'^blog/', include('blog.urls')),
+
+url(r'^', include('myapp.urls')), # Add this line!
+url(r'^admin/', include(admin.site.urls)),
+]
+<!DOCTYPE html>
+<html>
+<head>
+<title>My Django Blog</title>
+</head>
+<body>
+<div id="container">
+<div id="content">
+{% block content %}
+{% endblock content %}
+</div>
+</div>
+</body>
+</html>
+{% extends "base.html" %}{% block content %}
+<h1>Recent Posts</h1>
+{% for post in posts %}
+<div class="post">
+<h2>{{ post }}</h2>
+<p class="byline">
+Posted by {{ post.author.name }} &mdash {{ post.published_date }}
+</p>
+<ul class="categories">
+{% for category in post.categories.all %}
+<li>{{ category }}</li>
+{% endfor %}
+</ul>
+</div>
+{% endfor %}
+{% endblock %}DIRS': [os.path.join(BASE_DIR, 'myblog/templates'),],
+...
+def list_view(request):
+published = Post.objects.exclude(published_date__exact=None)
+posts = published.order_by('-published_date')
+template = loader.get_template('list.html')
+context = RequestContext(request, {'posts': posts})
+body = template.render(context)
+return HttpResponse(body, content_type="text/html")
